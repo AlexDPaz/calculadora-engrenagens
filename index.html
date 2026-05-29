@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gear Calc - Engrenagens</title>
+  
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#f0a500">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="styler/styler.css">
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <h2 class="sr-only" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">Calculadora de engrenagens de dentes retos.</h2>
+
+  <div class="wrap">
+    <div class="header">
+      <svg class="gear-icon" viewBox="0 0 44 44" fill="none">
+        <circle cx="22" cy="22" r="8" stroke="#f0a500" stroke-width="2"/>
+        <path d="M22 2v5M22 37v5M2 22h5M37 22h5M6.1 6.1l3.5 3.5M34.4 34.4l3.5 3.5M37.9 6.1l-3.5 3.5M9.6 34.4l-3.5 3.5" stroke="#f0a500" stroke-width="2" stroke-linecap="round"/>
+        <circle cx="22" cy="22" r="3" fill="#f0a500"/>
+      </svg>
+      <div class="header-text">
+        <h1>GEAR CALC</h1>
+        <p>calculadora de engrenagens // v1.2</p>
+      </div>
+    </div>
+
+    <div class="tabs">
+      <button class="tab active" onclick="switchTab('retos')">⚙ Dentes Retos</button>
+      <button class="tab" onclick="switchTab('transmissao')">⇌ Transmissão</button>
+    </div>
+
+    <div id="tab-retos" class="tab-content active">
+      <div class="section">
+        <div class="section-title">entradas obrigatórias</div>
+        <div class="grid2">
+          <div class="field">
+            <label>Módulo (M) ★</label>
+            <div class="field-wrap">
+              <input id="modulo" class="input-primary" type="number" min="0.1" step="0.5" placeholder="ex: 2, 4, 8" oninput="calcRetos()">
+              <span class="badge unit">mm</span>
+            </div>
+            <span class="warn" id="w-modulo"></span>
+          </div>
+          <div class="field">
+            <label>Nº de Dentes — Pinhão (Z1) ★</label>
+            <div class="field-wrap">
+              <input id="z1" class="input-primary" type="number" min="6" step="1" placeholder="ex: 20" oninput="calcRetos()">
+              <span class="badge unit">dentes</span>
+            </div>
+            <span class="warn" id="w-z1"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">parâmetros calculados — pinhão</div>
+        <div class="result-grid">
+          <div class="result-card highlight">
+            <span class="label">Diâmetro Primitivo</span>
+            <span class="value" id="dp1">—</span>
+            <span class="sym">Dp1 = M × Z1 [mm]</span>
+          </div>
+          <div class="result-card highlight">
+            <span class="label">Diâmetro Externo</span>
+            <span class="value" id="de1">—</span>
+            <span class="sym">De1 = Dp + 2M [mm]</span>
+          </div>
+          <div class="result-card">
+            <span class="label">Diâmetro Interno</span>
+            <span class="value" id="di1">—</span>
+            <span class="sym">Di = Dp - 2.166M [mm]</span>
+          </div>
+          <div class="result-card">
+            <span class="label">Altura do Dente</span>
+            <span class="value" id="h1">—</span>
+            <span class="sym">h = 2.166 × M [mm]</span>
+          </div>
+          <div class="result-card">
+            <span class="label">Espessura do Dente</span>
+            <span class="value" id="s1">—</span>
+            <span class="sym">S = 1.57 × M [mm]</span>
+          </div>
+          <div class="result-card">
+            <span class="label">Passo</span>
+            <span class="value" id="pr1">—</span>
+            <span class="sym">Pr = M × π [mm]</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">coroa — opcional</div>
+        <div class="grid2">
+          <div class="field">
+            <label>Nº de Dentes — Coroa (Z2)</label>
+            <div class="field-wrap">
+              <input id="z2" type="number" min="6" step="1" placeholder="ex: 40" oninput="calcRetos()">
+              <span class="badge unit">dentes</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Relação de Transmissão</label>
+            <div class="field-wrap">
+              <input id="relacao" class="result" type="text" readonly placeholder="—">
+              <span class="badge unit">i</span>
+            </div>
+          </div>
+        </div>
+        <div id="coroa-results" style="display:none;margin-top:10px">
+          <div class="result-grid">
+            <div class="result-card highlight">
+              <span class="label">Dp2 — Coroa</span>
+              <span class="value" id="dp2">—</span>
+              <span class="sym">Dp2 = M × Z2 [mm]</span>
+            </div>
+            <div class="result-card highlight">
+              <span class="label">Distância entre Centros</span>
+              <span class="value" id="centros">—</span>
+              <span class="sym">C = (Dp1+Dp2)/2 [mm]</span>
+            </div>
+            <div class="result-card">
+              <span class="label">De2 — Coroa</span>
+              <span class="value" id="de2">—</span>
+              <span class="sym">De2 = Dp2 + 2M [mm]</span>
+            </div>
+            <div class="result-card">
+              <span class="label">Di2 — Coroa</span>
+              <span class="value" id="di2">—</span>
+              <span class="sym">Di2 = Dp2 - 2.166M [mm]</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="info-box" id="info-retos">// preencha módulo e nº de dentes para ver os resultados</div>
+    </div>
+
+    <div id="tab-transmissao" class="tab-content">
+      <div class="section">
+        <div class="section-title">dados do motor / polia motora</div>
+        <div class="grid3">
+          <div class="field">
+            <label>Rotação Motor (n1)</label>
+            <div class="field-wrap">
+              <input id="n1" class="input-primary" type="number" min="1" placeholder="ex: 1750" oninput="calcTransmissao()">
+              <span class="badge unit">RPM</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Diâm. Polia 1 (D1)</label>
+            <div class="field-wrap">
+              <input id="d1t" type="number" min="1" placeholder="ex: 160" oninput="calcTransmissao()">
+              <span class="badge unit">mm</span>
+            </div>
+          </div>
+          <div class="field">
+            <label>Diâm. Polia 2 (D2)</label>
+            <div class="field-wrap">
+              <input id="d2t" type="number" min="1" placeholder="ex: 800" oninput="calcTransmissao()">
+              <span class="badge unit">mm</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">saída das polias</div>
+        <div class="result-grid">
+          <div class="result-card highlight">
+            <span class="label">Rotação saída (n2)</span>
+            <span class="value" id="n2-out">—</span>
+            <span class="sym">n2 = n1×D1/D2 [RPM]</span>
+          </div>
+          <div class="result-card highlight">
+            <span class="label">Relação de Trans.</span>
+            <span class="value" id="i-polias">—</span>
+            <span class="sym">i = D2/D1</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">engrenamento — pinhão / coroa</div>
+        <div class="engr-pair">
+          <div>
+            <div class="pair-label">⚙ pinhão (1)</div>
+            <div class="grid2" style="gap:8px">
+              <div class="field">
+                <label>Módulo (M)</label>
+                <input id="tm" class="input-primary" type="number" min="0.1" step="0.5" placeholder="8" oninput="calcTransmissao()">
+              </div>
+              <div class="field">
+                <label>Z1 — dentes</label>
+                <input id="tz1" type="number" min="6" placeholder="20" oninput="calcTransmissao()">
+              </div>
+            </div>
+          </div>
+          <div>
+            <div class="pair-label">⚙ coroa (2)</div>
+            <div class="field">
+              <label>Z2 — dentes</label>
+              <input id="tz2" type="number" min="6" placeholder="32" oninput="calcTransmissao()">
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <div class="section-title">resultado do engrenamento</div>
+        <div class="result-grid">
+          <div class="result-card highlight">
+            <span class="label">Dp1 — Pinhão</span>
+            <span class="value" id="t-dp1">—</span>
+            <span class="sym">mm</span>
+          </div>
+          <div class="result-card highlight">
+            <span class="label">Dp2 — Coroa</span>
+            <span class="value" id="t-dp2">—</span>
+            <span class="sym">mm</span>
+          </div>
+          <div class="result-card">
+            <span class="label">De1 / De2</span>
+            <span class="value" id="t-de">—</span>
+            <span class="sym">mm / mm</span>
+          </div>
+          <div class="result-card">
+            <span class="label">Dist. entre centros</span>
+            <span class="value" id="t-c">—</span>
+            <span class="sym">C [mm]</span>
+          </div>
+          <div class="result-card">
+            <span class="label">Relação engrenagem</span>
+            <span class="value" id="t-i">—</span>
+            <span class="sym">i = Z2/Z1</span>
+          </div>
+          <div class="result-card">
+            <span class="label">Rotação final</span>
+            <span class="value" id="t-nf">—</span>
+            <span class="sym">RPM</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-pdf" onclick="gerarMemorialPDF()">📄 Gerar Memorial de Cálculo (PDF)</button>
+  </div>
+
+  <script src="script.js"></script>
+
+  <script>
+  // Registra o Service Worker para habilitar o uso offline
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('./service-worker.js')
+        .then((registration) => {
+          console.log('Modo offline ativado com sucesso!', registration.scope);
+        })
+        .catch((error) => {
+          console.log('Falha ao ativar modo offline:', error);
+        });
+    });
+  }
+</script>
+
+</body>
+</html>
